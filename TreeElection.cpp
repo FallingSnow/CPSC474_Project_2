@@ -2,17 +2,11 @@
 #include "mpi.h"
 #include <vector>
 
-#include "config.hpp"
-
-// Use standard library namespace
 using namespace std;
 
 struct node{
-    int rank=-1;
-    bool parent =false;
+    int rank=-1;   
     bool msgRecived= false;
-    bool child =false;
-   
 };
 bool checkRcvs(vector<node*> x){
     int count=0;
@@ -30,10 +24,6 @@ bool checkRcvs(vector<node*> x){
 }
 int main( int argc, char *argv[] )
 {
-
-    fprintf(stdout, "Running %s Version %d.%d\n", argv[0], PROJECT_VERSION_MAJOR,
-          PROJECT_VERSION_MINOR);
-
     int rank, size;
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -41,6 +31,7 @@ int main( int argc, char *argv[] )
     vector<node*> neighbors; 
     bool rightReceive= false;
     bool leftReceive= false;
+    node * parent;
     if(rank!=0){
         neighbors.push_back(new node);
         neighbors.back()->rank= (rank-1)/2;
@@ -57,11 +48,29 @@ int main( int argc, char *argv[] )
         neighbors.push_back(new node);
         neighbors.back()->rank=leftc;    
     }
+    vector<int> number(neighbors.size(), -1);
+    vector<node*> children;
+    //tag 0 =parent msgs
+    MPI_Request ireq;
     while(!checkRcvs){
-        //receive msg and set variables in node   
+        //receive msg and set variables in node
+        //remove the node from whom you recieved a message form neighbors
+        //add it to children vector
+        for(int i = 0; i<neighbors.size(); i++){
+            MPI_Ircv(&number[i], 1, MPI_INT, neighbors[i]->rank, 0, MPI_COMM_WORLD, &ireg);
+            if(number[i]!=-1){
+                children.push_back(neighbors[i]);   
+            }
+        }
     }
+    
         
-    for(int i=0; i<neighbors.size(); i++){}
+    for(int i=0; i<neighbors.size(); i++){//used to select who your parent is not done yet
+        if(!(neigbors[i]->msgRecived)){
+            parent=neighbors[i];
+            neighborrs.erase(i);
+        }
+    }
     
     MPI_Finalize();
     return 0;
