@@ -9,8 +9,8 @@ Make sure these dependencies are in your PATH. You can check by using `which {co
 
 ## Getting the code
 ```sh
-git clone git@github.com:FallingSnow/CPSC471.git
-cd CPSC471
+git clone git@github.com:FallingSnow/CPSC474_Project_2.git
+cd CPSC474_Project_2
 ```
 
 ## Compiling
