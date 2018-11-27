@@ -12,7 +12,10 @@ bool checkRcvs(vector<node*> x){
     int count=0;
     for(int i=0; i< x.size(); i++){
         if(!(x[i]->msgRecived)){
-            count++;   
+            count++;
+            if(count>=2){
+                return False;   
+            }
         }
     }
     
@@ -42,12 +45,11 @@ int main( int argc, char *argv[] )
         neighbors.push_back(new node);
         neighbors.back()->rank=leftc;    
     }
-    while(!rightReceive && !leftReceive){
-        //receive msg   
+    while(!checkRcvs){
+        //receive msg and set variables in node   
     }
-    if(leftc==-1 && rightc=-1){
-        //send msg to parent       
-    }
+        
+    
     
     MPI_Finalize();
     return 0;
