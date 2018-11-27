@@ -6,24 +6,24 @@ using namespace std;
 
 struct node{
     int rank=-1;
-    bool parent =False;
-    bool msgRecived= False;
-    bool child =False;
+    bool parent =false;
+    bool msgRecived= false;
+    bool child =false;
    
-}
-bool checkRcvs(vector<node*> x){
+};
+bool checkRcvs(vector<*node> x){
     int count=0;
       
     for(int i=0; i< x.size(); i++){
         if(!(x[i]->msgRecived)){
             count++;
             if(count>=2){
-                return False;   
+                return false;   
             }
         }
         
     }
-    return True;
+    return true;
 }
 int main( int argc, char *argv[] )
 {
@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     MPI_Comm_size( MPI_COMM_WORLD, &size );
-    vector<node*> neighbors; 
+    vector<* node> neighbors; 
     bool rightReceive= False;
     bool leftReceive= False;
     if(rank!=0){
@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
         //receive msg and set variables in node   
     }
         
-    
+    for(int i=0; i<neighbors.size();
     
     MPI_Finalize();
     return 0;
