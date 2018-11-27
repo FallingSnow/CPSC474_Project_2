@@ -10,6 +10,7 @@ struct node{
 }
 bool checkRcvs(vector<node*> x){
     int count=0;
+      
     for(int i=0; i< x.size(); i++){
         if(!(x[i]->msgRecived)){
             count++;
@@ -17,8 +18,9 @@ bool checkRcvs(vector<node*> x){
                 return False;   
             }
         }
+        
     }
-    
+    return True;
 }
 int main( int argc, char *argv[] )
 {
