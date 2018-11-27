@@ -11,7 +11,7 @@ struct node{
     bool child =false;
    
 };
-bool checkRcvs(vector<*node> x){
+bool checkRcvs(vector<node*> x){
     int count=0;
       
     for(int i=0; i< x.size(); i++){
@@ -31,9 +31,9 @@ int main( int argc, char *argv[] )
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     MPI_Comm_size( MPI_COMM_WORLD, &size );
-    vector<* node> neighbors; 
-    bool rightReceive= False;
-    bool leftReceive= False;
+    vector<node*> neighbors; 
+    bool rightReceive= false;
+    bool leftReceive= false;
     if(rank!=0){
         neighbors.push_back(new node);
         neighbors.back()->rank= (rank-1)/2;
@@ -54,7 +54,7 @@ int main( int argc, char *argv[] )
         //receive msg and set variables in node   
     }
         
-    for(int i=0; i<neighbors.size();
+    for(int i=0; i<neighbors.size(); i++){}
     
     MPI_Finalize();
     return 0;
