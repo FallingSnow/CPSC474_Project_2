@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "mpi.h"
 #include <vector>
+
+using namespace std;
+
 struct node{
     int rank=-1;
     bool parent =False;

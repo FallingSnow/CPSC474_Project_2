@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 3.1)
 
 # Give the project a name.
-project (Project)
+project (Leader_Selection)
 
 # The version number.
 set (PROJECT_VERSION_MAJOR 0)
@@ -59,7 +59,7 @@ find_package(Threads REQUIRED)
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add an executable.
-add_executable(${CMAKE_PROJECT_NAME} template.cpp)
+add_executable(${CMAKE_PROJECT_NAME} TreeElection.cpp)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} Threads::Threads)
 
