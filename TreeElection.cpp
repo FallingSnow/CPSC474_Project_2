@@ -2,6 +2,9 @@
 #include "mpi.h"
 #include <vector>
 
+#include "config.hpp"
+
+// Use standard library namespace
 using namespace std;
 
 struct node{
@@ -27,6 +30,10 @@ bool checkRcvs(vector<node*> x){
 }
 int main( int argc, char *argv[] )
 {
+
+    fprintf(stdout, "Running %s Version %d.%d\n", argv[0], PROJECT_VERSION_MAJOR,
+          PROJECT_VERSION_MINOR);
+
     int rank, size;
     MPI_Init( &argc, &argv );
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );

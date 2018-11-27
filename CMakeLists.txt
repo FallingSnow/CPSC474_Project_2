@@ -13,6 +13,10 @@ set (CMAKE_CXX_STANDARD 17)
 
 # #############################################################################
 
+# Find OpenMPI
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
+
 # Use ccache if it is found
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND AND CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -61,7 +65,23 @@ include_directories("${PROJECT_BINARY_DIR}")
 # Add an executable.
 add_executable(${CMAKE_PROJECT_NAME} TreeElection.cpp)
 
+# Add thread library
 target_link_libraries(${CMAKE_PROJECT_NAME} Threads::Threads)
+
+# Add MPI library
+target_link_libraries(${CMAKE_PROJECT_NAME} ${MPI_LIBRARIES})
+
+# Add Compiler flags for MPI
+if(MPI_COMPILE_FLAGS)
+  set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
+    COMPILE_FLAGS "${MPI_COMPILE_FLAGS}")
+endif()
+
+# Add Linker flags for MPI
+if(MPI_LINK_FLAGS)
+  set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
+    LINK_FLAGS "${MPI_LINK_FLAGS}")
+endif()
 
 # Set install destination target
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION bin)
