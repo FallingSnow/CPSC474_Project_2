@@ -7,15 +7,15 @@ struct node{
     bool msgRecived= false;
     bool child =false;
    
-}
-bool checkRcvs(vector<node*> x){
+};
+bool checkRcvs(vector<*node> x){
     int count=0;
       
     for(int i=0; i< x.size(); i++){
         if(!(x[i]->msgRecived)){
             count++;
             if(count>=2){
-                return False;   
+                return false;   
             }
         }
         
