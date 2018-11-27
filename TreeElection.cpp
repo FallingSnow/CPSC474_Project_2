@@ -57,7 +57,7 @@ int main( int argc, char *argv[] )
         //remove the node from whom you recieved a message form neighbors
         //add it to children vector
         for(int i = 0; i<neighbors.size(); i++){
-            MPI_Ircv(&number[i], 1, MPI_INT, neighbors[i]->rank, 0, MPI_COMM_WORLD, &ireg);
+            MPI_Ircv(&number[i], 1, MPI_INT, neighbors[i]->rank, 0, MPI_COMM_WORLD, &ireq);
             if(number[i]!=-1){
                 children.push_back(neighbors[i]);   
             }
@@ -66,9 +66,9 @@ int main( int argc, char *argv[] )
     
         
     for(int i=0; i<neighbors.size(); i++){//used to select who your parent is not done yet
-        if(!(neigbors[i]->msgRecived)){
+        if(!(neighbors[i]->msgRecived)){
             parent=neighbors[i];
-            neighborrs.erase(i);
+            neighbors.erase(i);
         }
     }
     
