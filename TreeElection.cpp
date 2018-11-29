@@ -54,23 +54,37 @@ int main( int argc, char *argv[] )
     MPI_Request ireq;
     while(!checkRcvs){
         //receive msg and set variables in node
-        //remove the node from whom you recieved a message form neighbors
         //add it to children vector
         for(int i = 0; i<neighbors.size(); i++){
             MPI_Irecv(&number[i], 1, MPI_INT, neighbors[i]->rank, 0, MPI_COMM_WORLD, &ireq);
             if(number[i]!=-1){
-                children.push_back(neighbors[i]);   
+                children.push_back(neighbors[i]);
+		int temp= 0;
+		MPI_Send(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
+
             }
         }
     }
-    
-        
+    int temp= 1;
     for(int i=0; i<neighbors.size(); i++){//used to select who your parent is not done yet
         if(!(neighbors[i]->msgRecived)){
             parent=neighbors[i];
+	    break;
         }
     }
-    
+
+   if(parent==nullptr){
+	parent=children.back();
+   }
+   
+   MPI_Isend(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD, &ireq);
+   temp=-1;
+   MPI_Recv(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+   if(temp==1){
+	children.push_back(parent);
+   }
+   printf("my parent=%d", parent->rank);
+   printf("my rank=%d", rank);
     MPI_Finalize();
     return 0;
 }
