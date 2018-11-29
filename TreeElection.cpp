@@ -83,8 +83,8 @@ int main( int argc, char *argv[] )
    if(temp==1){
 	children.push_back(parent);
    }
-   printf("my parent=%d", parent->rank);
-   printf("my rank=%d", rank);
+   printf("my parent=%d\n", parent->rank);
+   printf("my rank=%d\n", rank);
     MPI_Finalize();
     return 0;
 }
