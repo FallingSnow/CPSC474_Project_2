@@ -52,7 +52,7 @@ int main( int argc, char *argv[] )
     vector<node*> children;
     //tag 0 =parent msgs
     MPI_Request ireq;
-    while(!checkRcvs){
+    while(!checkRcvs(neighbors)){
         //receive msg and set variables in node
         //add it to children vector
         for(int i = 0; i<neighbors.size(); i++){
