@@ -29,8 +29,6 @@ int main( int argc, char *argv[] )
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     MPI_Comm_size( MPI_COMM_WORLD, &size );
     vector<node*> neighbors; 
-    bool rightReceive= false;
-    bool leftReceive= false;
     node * parent;
     if(rank!=0){
         neighbors.push_back(new node);
@@ -61,7 +59,7 @@ int main( int argc, char *argv[] )
                 children.push_back(neighbors[i]);
 		int temp= 0;
 		MPI_Send(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
-
+		neighbors[i]->msgReceived=true;
             }
         }
     }
