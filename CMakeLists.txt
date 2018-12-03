@@ -55,18 +55,11 @@ configure_file (
   "${PROJECT_BINARY_DIR}/config.hpp"
   )
 
-# Use thread library
-set(CMAKE_THREAD_PREFER_PTHREAD ON)
-find_package(Threads REQUIRED)
-
 # Add includes path.
 include_directories("${PROJECT_BINARY_DIR}")
 
 # Add an executable.
 add_executable(${CMAKE_PROJECT_NAME} TreeElection.cpp)
-
-# Add thread library
-target_link_libraries(${CMAKE_PROJECT_NAME} Threads::Threads)
 
 # Add MPI library
 target_link_libraries(${CMAKE_PROJECT_NAME} ${MPI_LIBRARIES})
