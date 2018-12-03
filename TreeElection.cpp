@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
         neighbors.back()->rank = leftc;
     }
 
-    // Hold response acks from neighbors, currently set to neightbors.size()
+    // Hold messages from neighbors, currently set to neighbors.size()
     // -1's
     vector<int> number(neighbors.size(), -1);
     vector<node *> children;
@@ -84,19 +84,29 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < neighbors.size(); i++) {
 
             // Nonblocking receive for neighbor[i]
-            MPI_Irecv(&number[i], 1, MPI_INT, neighbors[i]->rank, 0,
-                      MPI_COMM_WORLD, &ireq);
+            int recvCode = MPI_Irecv(&number[i], 1, MPI_INT, neighbors[i]->rank,
+                                    0, MPI_COMM_WORLD, &ireq);
+
+            // Check for recv error
+            if (recvCode != MPI_SUCCESS) {
+                printf("Unable to listen for neighbors");
+                return 1;
+            }
 
             if (number[i] != -1) {
                 children.push_back(neighbors[i]);
                 int temp = 0;
-                MPI_Send(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
+                int sendCode = MPI_Send(&temp, 1, MPI_INT, parent->rank, 0,
+                                       MPI_COMM_WORLD);
+                if (sendCode != MPI_SUCCESS) {
+                    printf("Unable to send to parent");
+                    return 1;
+                }
                 neighbors[i]->msgReceived = true;
             }
         }
     }
 
-    int temp = 1;
     // TODO: used to select who your parent is not done yet
     for (int i = 0; i < neighbors.size(); i++) {
         if (!(neighbors[i]->msgReceived)) {
@@ -111,10 +121,22 @@ int main(int argc, char *argv[]) {
         parent = children.back();
     }
 
-    MPI_Isend(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD, &ireq);
+    int temp = 1;
+
+    int ackCode = MPI_Isend(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD, &ireq);
+    if (ackCode != MPI_SUCCESS) {
+        printf("Unable to send ack");
+        return 1;
+    }
+
     temp = -1;
-    MPI_Recv(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,
+
+    int recvAckCode = MPI_Recv(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,
              MPI_STATUS_IGNORE);
+    if (recvAckCode != MPI_SUCCESS) {
+        printf("Unable to receive ack");
+        return 1;
+    }
 
     if (temp == 1) {
         children.push_back(parent);
@@ -122,6 +144,11 @@ int main(int argc, char *argv[]) {
 
     printf("my parent=%d\n", parent->rank);
     printf("my rank=%d\n", rank);
+
+    if (MPI_Request_free(&ireq) != MPI_SUCCESS) {
+        printf("Unable to free MPI_Request");
+        return 1;
+    }
 
     // Deinit MPI
     MPI_Finalize();
