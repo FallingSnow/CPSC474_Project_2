@@ -71,9 +71,9 @@ int main(int argc, char *argv[]) {
         neighbors.back()->rank = leftc;
     }
 
-    // Hold messages from neighbors, currently set to neighbors.size()
-    // -1's
-    vector<int> number(neighbors.size(), -1);
+    // Hold messages from neighbors, currently set to neighbors.size() (count)
+    // -1's (fill)
+    vector<int> recvMsgs(neighbors.size(), -1);
     vector<node *> children;
     MPI_Request ireq;
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < neighbors.size(); i++) {
 
             // Nonblocking receive for neighbor[i]
-            int recvCode = MPI_Irecv(&number[i], 1, MPI_INT, neighbors[i]->rank,
+            int recvCode = MPI_Irecv(&recvMsgs[i], 1, MPI_INT, neighbors[i]->rank,
                                     0, MPI_COMM_WORLD, &ireq);
 
             // Check for recv error
@@ -93,10 +93,10 @@ int main(int argc, char *argv[]) {
                 return 1;
             }
 
-            if (number[i] != -1) {
+            if (recvMsgs[i] != -1) {
                 children.push_back(neighbors[i]);
-                int temp = 0;
-                int sendCode = MPI_Send(&temp, 1, MPI_INT, parent->rank, 0,
+                int sendBuffer = 0;
+                int sendCode = MPI_Send(&sendBuffer, 1, MPI_INT, parent->rank, 0,
                                        MPI_COMM_WORLD);
                 if (sendCode != MPI_SUCCESS) {
                     printf("Unable to send to parent");
@@ -121,24 +121,24 @@ int main(int argc, char *argv[]) {
         parent = children.back();
     }
 
-    int temp = 1;
 
-    int ackCode = MPI_Isend(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD, &ireq);
+    int sendBuffer = 1;
+    int ackCode = MPI_Isend(&sendBuffer, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD, &ireq);
     if (ackCode != MPI_SUCCESS) {
         printf("Unable to send ack");
         return 1;
     }
 
-    temp = -1;
 
-    int recvAckCode = MPI_Recv(&temp, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,
+    int recvBuffer = -1;
+    int recvAckCode = MPI_Recv(&recvBuffer, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,
              MPI_STATUS_IGNORE);
     if (recvAckCode != MPI_SUCCESS) {
         printf("Unable to receive ack");
         return 1;
     }
 
-    if (temp == 1) {
+    if (recvBuffer == 1) {
         children.push_back(parent);
     }
 
