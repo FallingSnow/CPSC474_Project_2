@@ -33,8 +33,7 @@ int main(int argc, char *argv[]) {
 
     // If we are not the first process, lets add ourself to the neighbors vector
     if (rank != 0) {
-        neighbors.push_back(new node);
-        neighbors.back()->rank = (rank - 1) / 2;
+        neighbors.push_back(new node {(rank - 1) / 2});
     }
 
     // Defined ranks of children
@@ -43,14 +42,12 @@ int main(int argc, char *argv[]) {
 
     // Create right child
     if (rightc < size) {
-        neighbors.push_back(new node);
-        neighbors.back()->rank = rightc;
+        neighbors.push_back(new node {rightc});
     }
 
     // Create left child
     if (leftc < size) {
-        neighbors.push_back(new node);
-        neighbors.back()->rank = leftc;
+        neighbors.push_back(new node {leftc});
     }
 
     vector<node *> children;
