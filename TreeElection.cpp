@@ -154,22 +154,27 @@ int main(int argc, char *argv[]) {
     }*/
     for(int i=0; i<children.size(); i++){
 	int temp;
+	printf("rank:%d reciveing from %d\n",rank, children[i]->rank);
 	code=MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 	if(temp>max){
 		max=temp;
 	}
     }
+    
+     printf("rank:%d sendin to %d\n",rank, parent->rank);
      code = MPI_Send(&max, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
      int pmax;
+	printf("rank:%d receiving from  %d\n",rank, parent->rank);
      code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
      if(pmax>max){
 	max=pmax;
      }
-     
+       printf("rank: %d sending leader to my children\n", rank);
     for(int i=0; i<children.size(); i++){
+
 	int coder=MPI_Send(&max, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD);
     }
-    printf("rank:%d leader is %d", rank, max);
+    printf("rank:%d leader is %d\n", rank, max);
     // Deinit MPI
     MPI_Finalize();
 
