@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include "mpi.h"
+#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <vector>
@@ -33,7 +34,7 @@ int main(int argc, char *argv[]) {
 
     // If we are not the first process, lets add ourself to the neighbors vector
     if (rank != 0) {
-        neighbors.push_back(new node {(rank - 1) / 2});
+        neighbors.push_back(new node{(rank - 1) / 2});
     }
 
     // Defined ranks of children
@@ -42,12 +43,12 @@ int main(int argc, char *argv[]) {
 
     // Create right child
     if (rightc < size) {
-        neighbors.push_back(new node {rightc});
+        neighbors.push_back(new node{rightc});
     }
 
     // Create left child
     if (leftc < size) {
-        neighbors.push_back(new node {leftc});
+        neighbors.push_back(new node{leftc});
     }
 
     vector<node *> children;
@@ -58,23 +59,8 @@ int main(int argc, char *argv[]) {
 
         // Set our only neighbor as the parent
         parent = neighbors.back();
-        int sendBuffer = 0;
 
-        printf("RANK: %d | Sending \"%d\" to parent [%d]!\n", rank, sendBuffer,
-               parent->rank);
-
-        // Inform our parent that he is our parent
-        int code =
-            MPI_Send(&sendBuffer, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
-        printf("RANK: %d | Sent \"%d\" to parent [%d]!\n", rank, sendBuffer,
-               parent->rank);
-
-        // Check if send was successful
-        if (code != MPI_SUCCESS) {
-            printf("Unable to send to parent");
-            return 1;
-        }
-
+        // Otherwise we need to find out which neighbors we are a parent to
     } else {
         // Create an array of requests and a message buffer
         MPI_Request requests[neighbors.size()];
@@ -85,7 +71,7 @@ int main(int argc, char *argv[]) {
 
             // Check for recv error
             if (recvCode != MPI_SUCCESS) {
-                printf("Unable to listen for neighbors");
+                fprintf(stderr, "Unable to listen for neighbors");
                 return 1;
             }
         }
@@ -97,9 +83,9 @@ int main(int argc, char *argv[]) {
         int completed_indices[neighbors.size()] = {0};
 
         while (total_completed < neighbors.size() - 1) {
-	    printf("Completed: %zu < %d\n", total_completed, neighbors.size());
+            // printf("Completed: %zu < %d\n", total_completed, neighbors.size());
             // This sleep slows down the process but saves cpu cycles
-            usleep(1000 * 1000);
+            usleep(100);
 
             // Check for completed recv's
             MPI_Testsome(neighbors.size(), requests, &completed,
@@ -108,19 +94,51 @@ int main(int argc, char *argv[]) {
             total_completed += completed;
         }
 
-        // Find out parent, the node that didn't complete
+        // Find parent, the node that didn't complete
         for (size_t i = 0; i < neighbors.size(); i++) {
             if (msgs[i] == -1) {
+
+                // We don't want to listen for messages from our parent
+                // Also a bigger issue is the requests array falls out of scope,
+                // and if the request is resolved later, it will cause a seg fault
+                int code = MPI_Cancel(&requests[i]);
+                if (code != MPI_SUCCESS) {
+                    fprintf(stderr, "Unable to send to parent");
+                    return 1;
+                }
+                assert(parent == nullptr);
                 parent = neighbors[i];
-                break;
             }
         }
 
+        // This will be called in the event were there are only 3 processes
         if (parent == nullptr)
-            parent = neighbors.back();
+            parent = neighbors.front();
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    assert(parent != nullptr);
+
+    int sendBuffer = 0;
+
+    printf("RANK: %d | Sending \"%d\" to parent [%d]!\n", rank, sendBuffer,
+           parent->rank);
+
+    // Inform our parent that he is our parent
+    int code =
+        MPI_Send(&sendBuffer, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
+    printf("RANK: %d | Sent \"%d\" to parent [%d]!\n", rank, sendBuffer,
+           parent->rank);
+
+    // Check if send was successful
+    if (code != MPI_SUCCESS) {
+        fprintf(stderr, "Unable to send to parent");
+        return 1;
+    }
+
+    if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) {
+        fprintf(stderr, "Unable to wait at barrier");
+        return 1;
+    }
 
     printf("RANK: %d | My parent is %d.\n", rank, parent->rank);
 
