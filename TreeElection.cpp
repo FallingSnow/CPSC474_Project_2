@@ -99,9 +99,10 @@ int main(int argc, char *argv[]) {
         int completed = 0;
         int completed_indices[neighbors.size()] = {0};
 
-        while (completed < neighbors.size() - 1) {
+        while (total_completed < neighbors.size() - 1) {
+	    printf("Completed: %zu < %d\n", total_completed, neighbors.size());
             // This sleep slows down the process but saves cpu cycles
-            usleep(100);
+            usleep(1000 * 1000);
 
             // Check for completed recv's
             MPI_Testsome(neighbors.size(), requests, &completed,
