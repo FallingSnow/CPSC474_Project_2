@@ -7,6 +7,7 @@ Make sure these dependencies are in your PATH. You can check by using `which {co
 * [Cmake](https://cmake.org/) 3.1
 * C++17 Compiler ([GCC](https://www.gnu.org/software/gcc/) 7 | [Clang](https://clang.llvm.org/) 5)
 * [Ninja](https://ninja-build.org/)
+* [OpenMPI](https://www.open-mpi.org/) 3.1
 
 ## Getting the code
 ```sh
