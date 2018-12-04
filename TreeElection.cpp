@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 	    else{
 		neighbors[i]->id=msgs[i];
 		children.push_back(neighbors[i]);
-		printf("rank:%d |%d is my child\n", rank, children.back()->rank);
+//		printf("rank:%d |%d is my child\n", rank, children.back()->rank);
 	    }
         }
 
@@ -140,7 +140,11 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Unable to send to parent");
         return 1;
     }
-
+    for(int i=0; i< children.size(); i++){
+    	if(children[i]->rank==parent->rank){
+		children.erase(children.begin()+i);
+    	}
+    }
     if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) {
         fprintf(stderr, "Unable to wait at barrier");
         return 1;
@@ -151,30 +155,30 @@ int main(int argc, char *argv[]) {
     //recive max rank each child found and set max to the highest received
     for(int i=0; i<children.size(); i++){
 	int temp;
-	printf("rank:%d reciveing from child %d\n",rank, children[i]->rank);
-	code=MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	printf("rank:%d recieved %d from child %d\n",rank,temp, children[i]->rank);
+	//printf("rank:%d reciveing from child %d\n",rank, children[i]->rank);
+	code=MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	//printf("rank:%d recieved %d from child %d\n",rank,temp, children[i]->rank);
 	if(temp>max){
 		max=temp;
 	}
     }
    //send max to parent then compare that with value recieved from parent and 
    //update max appropriatley
-     printf("rank:%d sending %d to parent %d\n",rank,max, parent->rank);
-     code = MPI_Send(&max, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
+     //printf("rank:%d sending %d to parent %d\n",rank,max, parent->rank);
+     code = MPI_Send(&max, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD);
      int pmax;
-	printf("rank:%d receiving from parent %d\n",rank, parent->rank);
-     code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-     printf("rank:%d received %d from parent %d\n", rank, pmax, parent->rank);
+//	printf("rank:%d receiving from parent %d\n",rank, parent->rank);
+     code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+  //   printf("rank:%d received %d from parent %d\n", rank, pmax, parent->rank);
      if(pmax>max){
 	max=pmax;
      }
 
      //send max value to all children and print it 
-     printf("rank: %d sending leader %d to my children\n", rank, max);
+    // printf("rank: %d sending leader %d to my children\n", rank, max);
     for(int i=0; i<children.size(); i++){
 
-	code=MPI_Send(&max, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD);
+	code=MPI_Send(&max, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD);
     }
     printf("rank:%d leader is %d\n", rank, max);
     // Deinit MPI
