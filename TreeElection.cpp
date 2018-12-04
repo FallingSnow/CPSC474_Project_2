@@ -167,8 +167,9 @@ int main(int argc, char *argv[]) {
      }
      
     for(int i=0; i<children.size(); i++){
-	int coder=MPI_Recv(&max, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	int coder=MPI_Send(&max, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD);
     }
+    printf("rank:%d leader is %d", rank, max);
     // Deinit MPI
     MPI_Finalize();
 
