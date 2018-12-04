@@ -9,6 +9,7 @@ using namespace std;
 
 struct node {
     int rank = -1;
+    int id=-1;
 };
 
 int main(int argc, char *argv[]) {
@@ -109,6 +110,10 @@ int main(int argc, char *argv[]) {
                 assert(parent == nullptr);
                 parent = neighbors[i];
             }
+	    else{
+		neighbors[i]->id=msgs[i];
+		children.push_back(neighbors[i]);
+	    }
         }
 
         // This will be called in the event were there are only 3 processes
@@ -118,7 +123,7 @@ int main(int argc, char *argv[]) {
 
     assert(parent != nullptr);
 
-    int sendBuffer = 0;
+    int sendBuffer = rank;
 
     printf("RANK: %d | Sending \"%d\" to parent [%d]!\n", rank, sendBuffer,
            parent->rank);
@@ -141,7 +146,29 @@ int main(int argc, char *argv[]) {
     }
 
     printf("RANK: %d | My parent is %d.\n", rank, parent->rank);
-
+    int max=rank;
+/*    for(int i=0; i< children.size(); i++){
+	if(children[i]->id>max){
+		max=children[i]->id;
+	}
+    }*/
+    for(int i=0; i<children.size(); i++){
+	int temp;
+	code=MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	if(temp>max){
+		max=temp;
+	}
+    }
+     code = MPI_Send(&max, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
+     int pmax;
+     code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+     if(pmax>max){
+	max=pmax;
+     }
+     
+    for(int i=0; i<children.size(); i++){
+	int coder=MPI_Recv(&max, 1, MPI_INT, children[i]->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
     // Deinit MPI
     MPI_Finalize();
 
