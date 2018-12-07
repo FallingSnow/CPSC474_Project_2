@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // printf("RANK: %d | My parent is %d.\n", rank, parent->rank);
+    printf("Rank: %d | My parent is %d.\n", rank, parent->rank);
     int max = rank;
     // recive max rank each child found and set max to the highest received
     for (int i = 0; i < children.size(); i++) {
