@@ -9,7 +9,7 @@ using namespace std;
 
 struct node {
     int rank = -1;
-    int id=-1;
+    int id = -1;
 };
 
 int main(int argc, char *argv[]) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     }
 
     vector<node *> children;
-    //printf("RANK: %d | # Neighbors: %zu\n", rank, neighbors.size());
+    // printf("RANK: %d | # Neighbors: %zu\n", rank, neighbors.size());
 
     // If we only have 1 neighbor, we know it is our parent
     if (neighbors.size() == 1) {
@@ -84,14 +84,16 @@ int main(int argc, char *argv[]) {
         int completed_indices[neighbors.size()] = {0};
 
         while (total_completed < neighbors.size() - 1) {
-            // printf("Completed: %zu < %d\n", total_completed, neighbors.size());
+            // printf("Completed: %zu < %d\n", total_completed,
+            // neighbors.size());
+
             // This sleep slows down the process but saves cpu cycles
             usleep(100);
 
             // Check for completed recv's
             MPI_Testsome(neighbors.size(), requests, &completed,
                          completed_indices, MPI_STATUSES_IGNORE);
-           // printf("RANK: %d | Completed this round: %d\n", rank, completed);
+            // printf("RANK: %d | Completed this round: %d\n", rank, completed);
             total_completed += completed;
         }
 
@@ -101,7 +103,8 @@ int main(int argc, char *argv[]) {
 
                 // We don't want to listen for messages from our parent
                 // Also a bigger issue is the requests array falls out of scope,
-                // and if the request is resolved later, it will cause a seg fault
+                // and if the request is resolved later, it will cause a seg
+                // fault
                 int code = MPI_Cancel(&requests[i]);
                 if (code != MPI_SUCCESS) {
                     fprintf(stderr, "Unable to send to parent");
@@ -109,12 +112,12 @@ int main(int argc, char *argv[]) {
                 }
                 assert(parent == nullptr);
                 parent = neighbors[i];
+            } else {
+                neighbors[i]->id = msgs[i];
+                children.push_back(neighbors[i]);
+                // printf("rank:%d |%d is my child\n", rank,
+                //children.back()->rank);
             }
-	    else{
-		neighbors[i]->id=msgs[i];
-		children.push_back(neighbors[i]);
-//		printf("rank:%d |%d is my child\n", rank, children.back()->rank);
-	    }
         }
 
         // This will be called in the event were there are only 3 processes
@@ -126,61 +129,65 @@ int main(int argc, char *argv[]) {
 
     int sendBuffer = rank;
 
-   // printf("RANK: %d | Sending \"%d\" to parent [%d]!\n", rank, sendBuffer,
-     //      parent->rank);
+    // printf("RANK: %d | Sending \"%d\" to parent [%d]!\n", rank, sendBuffer,
+    //      parent->rank);
 
     // Inform our parent that he is our parent
     int code =
         MPI_Send(&sendBuffer, 1, MPI_INT, parent->rank, 0, MPI_COMM_WORLD);
-   // printf("RANK: %d | Sent \"%d\" to parent [%d]!\n", rank, sendBuffer,
-   //        parent->rank);
+    // printf("RANK: %d | Sent \"%d\" to parent [%d]!\n", rank, sendBuffer,
+    //        parent->rank);
 
     // Check if send was successful
     if (code != MPI_SUCCESS) {
         fprintf(stderr, "Unable to send to parent");
         return 1;
     }
-    for(int i=0; i< children.size(); i++){
-    	if(children[i]->rank==parent->rank){
-		children.erase(children.begin()+i);
-    	}
+    for (int i = 0; i < children.size(); i++) {
+        if (children[i]->rank == parent->rank) {
+            children.erase(children.begin() + i);
+        }
     }
     if (MPI_Barrier(MPI_COMM_WORLD) != MPI_SUCCESS) {
         fprintf(stderr, "Unable to wait at barrier");
         return 1;
     }
 
-   // printf("RANK: %d | My parent is %d.\n", rank, parent->rank);
-    int max=rank;
-    //recive max rank each child found and set max to the highest received
-    for(int i=0; i<children.size(); i++){
-	int temp;
-	//printf("rank:%d reciveing from child %d\n",rank, children[i]->rank);
-	code=MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-	//printf("rank:%d recieved %d from child %d\n",rank,temp, children[i]->rank);
-	if(temp>max){
-		max=temp;
-	}
+    // printf("RANK: %d | My parent is %d.\n", rank, parent->rank);
+    int max = rank;
+    // recive max rank each child found and set max to the highest received
+    for (int i = 0; i < children.size(); i++) {
+        int temp;
+        // printf("rank:%d reciveing from child %d\n",rank, children[i]->rank);
+        code = MPI_Recv(&temp, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD,
+                        MPI_STATUS_IGNORE);
+        // printf("rank:%d recieved %d from child %d\n",rank,temp,
+        // children[i]->rank);
+        if (temp > max) {
+            max = temp;
+        }
     }
-   //send max to parent then compare that with value recieved from parent and 
-   //update max appropriatley
-     //printf("rank:%d sending %d to parent %d\n",rank,max, parent->rank);
-     code = MPI_Send(&max, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD);
-     int pmax;
-//	printf("rank:%d receiving from parent %d\n",rank, parent->rank);
-     code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-  //   printf("rank:%d received %d from parent %d\n", rank, pmax, parent->rank);
-     if(pmax>max){
-	max=pmax;
-     }
+    // send max to parent then compare that with value recieved from parent and
+    // update max appropriatley
+    // printf("rank:%d sending %d to parent %d\n",rank,max, parent->rank);
+    code = MPI_Send(&max, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD);
+    int pmax;
+    //	printf("rank:%d receiving from parent %d\n",rank, parent->rank);
+    code = MPI_Recv(&pmax, 1, MPI_INT, parent->rank, 5, MPI_COMM_WORLD,
+                    MPI_STATUS_IGNORE);
+    //   printf("rank:%d received %d from parent %d\n", rank, pmax,
+    //   parent->rank);
+    if (pmax > max) {
+        max = pmax;
+    }
 
-     //send max value to all children and print it 
+    // send max value to all children and print it
     // printf("rank: %d sending leader %d to my children\n", rank, max);
-    for(int i=0; i<children.size(); i++){
+    for (int i = 0; i < children.size(); i++) {
 
-	code=MPI_Send(&max, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD);
+        code = MPI_Send(&max, 1, MPI_INT, children[i]->rank, 5, MPI_COMM_WORLD);
     }
-    printf("rank:%d leader is %d\n", rank, max);
+    printf("rank: %d | leader is %d\n", rank, max);
     // Deinit MPI
     MPI_Finalize();
 
